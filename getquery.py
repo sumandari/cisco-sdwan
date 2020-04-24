@@ -145,8 +145,8 @@ def main():
         print(f"Retrieving data from deviceId {args.d} in {vmanage}")
 
         df_deviceId = pd.DataFrame()
-        data_deviceId = device_overview(args.d)
-        df_deviceId = df_deviceId.append(data)
+        data_deviceId = obj.device_overview(args.d)
+        df_deviceId = df_deviceId.append(data_deviceId)
         
         print(df_deviceId)
 
