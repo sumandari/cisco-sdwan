@@ -19,7 +19,7 @@ class GetDataVmanage(RestSdwan):
                                 "mtu",
                                 "uptime",
                                 "port-type",
-                                "desc"], 
+                                "description"], 
                 *args,
                 **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,8 +62,7 @@ class GetDataVmanage(RestSdwan):
             data_overview = dict()
 
             for info in info_overview:
-                data_overview["deviceId"] = deviceId
-                data_overview[info] = None
+                data_overview[info] = deviceId if info == "vdevice-name" else None
             
             list_data.append(data_overview)
             
@@ -73,7 +72,6 @@ class GetDataVmanage(RestSdwan):
             data_overview = dict()
 
             for info in info_overview:
-                data_overview["deviceId"] = deviceId
                 data_overview[info] = data[info] if info in data else None
 
             list_data.append(data_overview)
@@ -104,6 +102,9 @@ def main():
                             metavar='username',
                             type=str,
                             help='username login to vmanage')
+    my_parser.add_argument('-a',
+                            action='store_true',
+                            help='show all deviceId')
     my_parser.add_argument('-d',
                             action='store',
                             type=str,
@@ -128,14 +129,17 @@ def main():
         obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password, 
                             info_overview=data_attribute)
 
-
+    if args.a:
+        allDeviceId = obj.all_device_id()
+        print("all deviceId : ")
+        for device in allDeviceId:
+            print(device, end="\n")
+        sys.exit()
 
     if not args.d:
         # all deviceId
         allDeviceId = obj.all_device_id()
-
         print(f"Retrieving data {len(allDeviceId)} deviceId in {vmanage}")
-        print(f"deviceId : {allDeviceId}")
 
         all_device_overview = obj.all_device_overview(allDeviceId)
         print(all_device_overview)
