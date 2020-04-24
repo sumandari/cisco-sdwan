@@ -62,12 +62,10 @@ class GetDataVmanage(RestSdwan):
             data_overview = dict()
 
             for info in info_overview:
-                if info == "ip-address":
-                    data_overview[info] = deviceId
-                else:
-                    data_overview[info] = None
+                data_overview["deviceId"] = deviceId
+                data_overview[info] = None
             
-                list_data.append(data_overview)
+            list_data.append(data_overview)
             
             return list_data
 
@@ -75,6 +73,7 @@ class GetDataVmanage(RestSdwan):
             data_overview = dict()
 
             for info in info_overview:
+                data_overview["deviceId"] = deviceId
                 data_overview[info] = data[info] if info in data else None
 
             list_data.append(data_overview)
@@ -119,23 +118,24 @@ def main():
     username = args.Username
     vmanage = args.Vmanage
     password = getpass.getpass(f'Password {username}: ')
-    
-    obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password)
 
     # custom or default attribute will be displayed
     if not args.q:
         data_attribute = None
+        obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password)
     else:
         data_attribute = args.q
+        obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password, 
+                            info_overview=data_attribute)
+
+
 
     if not args.d:
         # all deviceId
-        if not data_attribute:
-            allDeviceId = obj.all_device_id()
-        else:
-            allDeviceId = obj.all_device_id(info_overview=data_attribute)
+        allDeviceId = obj.all_device_id()
 
         print(f"Retrieving data {len(allDeviceId)} deviceId in {vmanage}")
+        print(f"deviceId : {allDeviceId}")
 
         all_device_overview = obj.all_device_overview(allDeviceId)
         print(all_device_overview)
@@ -145,8 +145,8 @@ def main():
         print(f"Retrieving data from deviceId {args.d} in {vmanage}")
 
         df_deviceId = pd.DataFrame()
-        data_deviceId = device_overview(args.d)
-        df_deviceId = df_deviceId.append(data)
+        data_deviceId = obj.device_overview(args.d)
+        df_deviceId = df_deviceId.append(data_deviceId)
         
         print(df_deviceId)
 
