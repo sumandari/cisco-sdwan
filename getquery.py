@@ -63,7 +63,7 @@ class GetDataVmanage(RestSdwan):
 
             for info in info_overview:
                 if info == "ip-address":
-                    data_overview = deviceId
+                    data_overview[info] = deviceId
                 else:
                     data_overview[info] = None
             
@@ -92,7 +92,7 @@ class GetDataVmanage(RestSdwan):
 
 def main():
     print('_' * 50 +'\n')
-    
+
     # create the parser
     my_parser = argparse.ArgumentParser(description='Use REST API SDWAN to retrieve data')
 
