@@ -11,7 +11,7 @@ from rest_api_lib import RestSdwan
 class GetDataVmanage(RestSdwan):
     def __init__(self, 
                 info_overview=["vdevice-host-name",
-                                "vdevice-name"
+                                "vdevice-name",
                                 "ifname",
                                 "ip-address",
                                 "if-oper-status",
