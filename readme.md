@@ -1,5 +1,5 @@
-# CISCO SDWAN - Get data from Vmanage
-You can get all data attribute from all deviceIds in your Vmanage either prefer to retrieve data from a deviceId
+# CISCO SDWAN - Get interface status from Vmanage
+You can get attribute from all deviceIds in your Vmanage either prefer to retrieve data from a deviceId
 
 ## Prerequisites
 * python3
