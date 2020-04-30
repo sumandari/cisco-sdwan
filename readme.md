@@ -31,10 +31,12 @@ python3 -m venv venv
  ```
  python getquery.py -h
  ```
+ ![help](/images/help.png)
  
  ```
  python vmanage:port username [option]
  ```
+ ![find by deviceId and show certain attributes](/images/by_deviceId_query.png)
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details
