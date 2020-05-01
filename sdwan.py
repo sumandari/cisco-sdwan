@@ -87,93 +87,123 @@ class GetDataVmanage(RestSdwan):
         return self.dataframe
 
 
-def main():
-    print('_' * 50 +'\n')
+class GetTopology(RestSdwan):
+    """
+    Get topology from BSD session
+    """
+    def __init__(self,*args, **kwargs):
+        """
+        call init function from class RestSdwan
+        include invoke login()
+        """
+        super().__init__(*args, **kwargs)
 
+    def bsd_session_deviceId(self, deviceId):
+            """
+            get bsd session, attribute: vdevice-datakey
+            """
+            url = f'/device/bfd/sessions?deviceId={deviceId}'
+            response = self.get_request(url, 'json')
+
+            return response
+
+
+def parser():
     # create the parser
     my_parser = argparse.ArgumentParser(description='Use REST API SDWAN to retrieve data')
+    subparser = my_parser.add_subparsers(dest='command')
 
-    # add the arguments
-    my_parser.add_argument('Vmanage',
+    status_interface = subparser.add_parser('status',
+                                            description='Get interace status table')
+
+    # add the arguments in subparser status_interface
+    status_interface.add_argument('Vmanage',
                             metavar='vmanage:port',
                             type=str,
                             help='vmanage ip address and port')
-    my_parser.add_argument('Username',
+    status_interface.add_argument('Username',
                             metavar='username',
                             type=str,
                             help='username login to vmanage')
-    my_parser.add_argument('-a',
+    status_interface.add_argument('-a',
                             action='store_true',
                             help='show all deviceId')
-    my_parser.add_argument('-d',
+    status_interface.add_argument('-d',
                             action='store',
                             type=str,
                             help='deviceId IP address')
-    my_parser.add_argument('-q',
+    status_interface.add_argument('-q',
                             action='append',
                             type=str,
                             help='attribute data to be retrieve')
 
-    args = my_parser.parse_args()
+    topology = subparser.add_parser('topology',
+                                    description='Get topology graph')
+    # add the arguments in subparser status_interface
+    topology.add_argument('Vmanage',
+                            metavar='vmanage:port',
+                            type=str,
+                            help='vmanage ip address and port')
+    topology.add_argument('Username',
+                            metavar='username',
+                            type=str,
+                            help='username login to vmanage')
+    return my_parser.parse_args()
 
+
+def main():
+    print('_' * 50 +'\n')
+    
+    args = parser()
+   
     username = args.Username
     vmanage = args.Vmanage
     password = getpass.getpass(f'Password {username}: ')
 
-    # custom or default attribute will be displayed
-    if not args.q:
-        data_attribute = None
-        obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password)
-    else:
-        data_attribute = args.q
-        obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password, 
-                            info_overview=data_attribute)
 
-    if args.a:
-        allDeviceId = obj.all_device_id()
-        print("all deviceId : ")
-        for device in allDeviceId:
-            print(device, end="\n")
+    # run topology parser
+    if args.command == 'topology':
+        print('this is topology')
+        obj = GetTopology(vmanage_ip=vmanage, username=username, password=password)
+        print(obj.bsd_session_deviceId('4.4.4.64'))
         sys.exit()
 
-    if not args.d:
-        # all deviceId
-        allDeviceId = obj.all_device_id()
-        print(f"Retrieving data {len(allDeviceId)} deviceId in {vmanage}")
+    elif args.command == 'status':
+        # custom or default attribute will be displayed
+        if not args.q:
+            data_attribute = None
+            obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password)
+        else:
+            data_attribute = args.q
+            obj = GetDataVmanage(vmanage_ip=vmanage, username=username, password=password, 
+                                info_overview=data_attribute)
 
-        all_device_overview = obj.all_device_overview(allDeviceId)
-        print(all_device_overview)
+        if args.a:
+            allDeviceId = obj.all_device_id()
+            print("all deviceId : ")
+            for device in allDeviceId:
+                print(device, end="\n")
+            sys.exit()
 
-    else:
-        # certain deviceId
-        print(f"Retrieving data from deviceId {args.d} in {vmanage}")
+        if not args.d:
+            # all deviceId
+            allDeviceId = obj.all_device_id()
+            print(f"Retrieving data {len(allDeviceId)} deviceId in {vmanage}")
 
-        df_deviceId = pd.DataFrame()
-        data_deviceId = obj.device_overview(args.d)
-        df_deviceId = df_deviceId.append(data_deviceId)
-        
-        print(df_deviceId)
+            all_device_overview = obj.all_device_overview(allDeviceId)
+            print(all_device_overview)
+
+        else:
+            # certain deviceId
+            print(f"Retrieving data from deviceId {args.d} in {vmanage}")
+
+            df_deviceId = pd.DataFrame()
+            data_deviceId = obj.device_overview(args.d)
+            df_deviceId = df_deviceId.append(data_deviceId)
+            
+            print(df_deviceId)
 
     print('_' * 50 +'\n')
-
-    
-
-
-# def main(args):
-#     if not len(sys.argv[1:]) == 2:
-#         sys.exit(print('\nuse > python rest_api_lib.py <vmanage_ip:port> <username>'))
-
-#     vmanage_ip, username= args[0], args[1]
-
-#     password = getpass.getpass(f'Password {username}: ')
-
-#     obj = GetDataVmanage(vmanage_ip, username, password)
-    
-#     allDeviceId = obj.all_device_id()
-#     print(f"Retrieving data {len(allDeviceId)} deviceId...")
-    
-#     all_device_overview = obj.all_device_overview(allDeviceId)
-#     print(all_device_overview)
 
 
 if __name__ == "__main__":
