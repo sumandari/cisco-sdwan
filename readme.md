@@ -33,7 +33,7 @@ python3 -m venv venv
  ```
  
  ```
- python vmanage:port username [option]
+ python getquery.py vmanage:port username [option]
  ```
  ![all deciveid](/images/all.png)
 
