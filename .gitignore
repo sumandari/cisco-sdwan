@@ -6,8 +6,5 @@ __pycache__/
 # virtual env
 venv/
 
-# images
-images/
-
 myjson.json
 newdata.txt

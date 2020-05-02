@@ -29,13 +29,18 @@ python3 -m venv venv
  
  ## Usage
  ```
- python getquery.py -h
+ python sdwan.py -h
  ```
  
  ```
- python getquery.py vmanage:port username [option]
+ python sdwan.py status vmanage:port username [option]
  ```
- ![all deciveid](/images/all.png)
+ ![all deciveid](/images/status.png)
+
+```
+ python sdwan.py topology vmanage:port username
+ ```
+ ![all deciveid](/images/topo.png)
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details
