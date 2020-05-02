@@ -1,6 +1,7 @@
 import argparse
 import getpass
 import json
+import re
 import sys
 
 import pandas as pd
@@ -63,9 +64,9 @@ class GetDataVmanage(RestSdwan):
 
             for info in info_overview:
                 data_overview[info] = deviceId if info == "vdevice-name" else None
-            
+
             list_data.append(data_overview)
-            
+
             return list_data
 
         for data in response['data']:
@@ -78,12 +79,11 @@ class GetDataVmanage(RestSdwan):
 
         return list_data
 
-    def all_device_overview(self, devices = []):
-
+    def all_device_overview(self, devices=[]):
         for device in devices:
             data = self.device_overview(device)
             self.dataframe = self.dataframe.append(data)
-        
+
         return self.dataframe
 
 
@@ -91,30 +91,88 @@ class GetTopology(RestSdwan):
     """
     Get topology from BSD session
     """
-    def __init__(self,*args, **kwargs):
+
+    def __init__(self, *args, **kwargs):
         """
         call init function from class RestSdwan
         include invoke login()
         """
         super().__init__(*args, **kwargs)
 
-    def bsd_session_deviceId(self, deviceId):
-            """
-            get bsd session, attribute: vdevice-datakey
-            """
-            url = f'/device/bfd/sessions?deviceId={deviceId}'
-            response = self.get_request(url, 'json')
+    def all_device_id(self):
+        """
+        get all device id from vmanage
 
-            return response
+        :return:
+        list of deviceId
+
+        :return type:
+        list
+        """
+        response = self.get_request('/device', 'json')
+
+        id_devices = list()
+        for data in response['data']:
+            id_devices.append(data['deviceId'])
+
+        return id_devices
+
+    def datakey_bsd_session_deviceId(self, deviceId):
+        """
+        get bsd session, attribute: vdevice-datakey
+        return list of tuple
+        """
+        url = f'/device/bfd/sessions?deviceId={deviceId}'
+        response = self.get_request(url, 'json')
+
+        regex = r'vdevice-dataKey": "([0-9.]+-[\w]+)-([0-9.]+-[\w]+)-[\w]+"'
+        tuples = re.findall(regex, json.dumps(response))
+
+        return tuples
+
+    def datakey_bsd_session_all(self):
+        """
+        get bsd session in all deviceId
+
+        """
+        deviceId = self.all_device_id()
+        print(deviceId)
+
+        tuple_data = list()
+        for device in deviceId:
+            tunnel = self.datakey_bsd_session_deviceId(device)
+            tuple_data.append(tunnel)
+
+        tunnels = list()
+        for data in tuple_data:
+            for d in data:
+                if not d in tunnels:
+                    swap_d = (d[1], d[0])
+                    if not swap_d in tunnels:
+                        tunnels.append(d)
+
+        return tunnels
+
+
+class MyParser(argparse.ArgumentParser):
+    """
+    overwrite error message
+    """
+
+    def error(self, err):
+        sys.stderr.write(f'error: {err}\n')
+        self.print_help()
+        sys.exit(1)
 
 
 def parser():
     # create the parser
-    my_parser = argparse.ArgumentParser(description='Use REST API SDWAN to retrieve data')
+    my_parser = MyParser(description='Use REST API SDWAN to retrieve data')
     subparser = my_parser.add_subparsers(dest='command')
+    subparser.required = True
 
     status_interface = subparser.add_parser('status',
-                                            description='Get interace status table')
+                                    description='Get interace status table')
 
     # add the arguments in subparser status_interface
     status_interface.add_argument('Vmanage',
@@ -152,7 +210,7 @@ def parser():
 
 
 def main():
-    print('_' * 50 +'\n')
+    print('_' * 50 + '\n')
     
     args = parser()
    
@@ -163,10 +221,10 @@ def main():
 
     # run topology parser
     if args.command == 'topology':
-        print('this is topology')
+        print('prepare topology data...')
         obj = GetTopology(vmanage_ip=vmanage, username=username, password=password)
-        print(obj.bsd_session_deviceId('4.4.4.64'))
-        sys.exit()
+        print(obj.datakey_bsd_session_all())
+        sys.exit(0)
 
     elif args.command == 'status':
         # custom or default attribute will be displayed
