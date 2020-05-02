@@ -4,6 +4,8 @@ import json
 import re
 import sys
 
+from pprint import pprint
+
 import pandas as pd
 
 from rest_api_lib import RestSdwan
@@ -136,7 +138,8 @@ class GetTopology(RestSdwan):
 
         """
         deviceId = self.all_device_id()
-        print(deviceId)
+        print('deviceId: ', end='')
+        pprint(deviceId)
 
         tuple_data = list()
         for device in deviceId:
@@ -223,7 +226,9 @@ def main():
     if args.command == 'topology':
         print('prepare topology data...')
         obj = GetTopology(vmanage_ip=vmanage, username=username, password=password)
-        print(obj.datakey_bsd_session_all())
+        topo = obj.datakey_bsd_session_all()
+        print('Network topology: ')
+        pprint(topo)
         sys.exit(0)
 
     elif args.command == 'status':
