@@ -7,6 +7,8 @@ import sys
 from pprint import pprint
 
 import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
 
 from rest_api_lib import RestSdwan
 
@@ -147,14 +149,16 @@ class GetTopology(RestSdwan):
             tuple_data.append(tunnel)
 
         tunnels = list()
+        df = pd.DataFrame()
         for data in tuple_data:
             for d in data:
                 if not d in tunnels:
                     swap_d = (d[1], d[0])
                     if not swap_d in tunnels:
                         tunnels.append(d)
+                        df = df.append({'from': d[0], 'to': d[1]}, ignore_index=True)
 
-        return tunnels
+        return df
 
 
 class MyParser(argparse.ArgumentParser):
@@ -224,11 +228,14 @@ def main():
 
     # run topology parser
     if args.command == 'topology':
-        print('prepare topology data...')
+        print('preparing topology data...')
         obj = GetTopology(vmanage_ip=vmanage, username=username, password=password)
         topo = obj.datakey_bsd_session_all()
         print('Network topology: ')
         pprint(topo)
+        G = nx.from_pandas_edgelist(topo, 'from', 'to')
+        nx.draw(G, with_labels=True)
+        plt.show()
         sys.exit(0)
 
     elif args.command == 'status':
